@@ -4,16 +4,21 @@ import { Link } from "expo-router";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Text, View } from "react-native";
+import { useAuth } from "../../../context/AuthContext";
 import ErrorText from "../../components/ErrorText";
 import FormInput from "../../components/FormInput";
 import PrimaryButton from "../../components/PrimaryButton";
 import { SignInForm, signInSchema } from "../../schemas/auth";
 import { authStyles } from "../../styles/authStyles";
+import { getAuthErrorMessage } from "../../utils/authErrors";
 
 export default function SignIn() {
   //loading shows the spinner, authError is for errors from supabase
   const [loading, setLoading] = useState(false);
   const [authError, setAuthError] = useState("");
+
+  //pull signIn out of niko's auth context
+  const { signIn } = useAuth();
 
   //hook up the form to the zod rules
   const {
@@ -25,18 +30,18 @@ export default function SignIn() {
     defaultValues: { email: "", password: "" },
   });
 
-  // only runs if zod says the form is valid
+  //only runs if zod says the form is valid
   const onSubmit = async (data: SignInForm) => {
     setAuthError("");
     setLoading(true);
 
     try {
-      // placeholder until niko's signIn is ready
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log("sign in with", data);
-    } catch {
-      // never crash, just show a message
-      setAuthError("Something went wrong. Please try again.");
+      const { error } = await signIn(data.email, data.password);
+      //show a readable message if supabase said no
+      if (error) setAuthError(getAuthErrorMessage(error));
+    } catch (err) {
+      //network died or something unexpected, still don't crash
+      setAuthError(getAuthErrorMessage(err));
     } finally {
       setLoading(false);
     }

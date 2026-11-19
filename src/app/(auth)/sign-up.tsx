@@ -10,12 +10,14 @@ import {
     Text,
     View,
 } from "react-native";
+import { useAuth } from "../../../context/AuthContext";
 import { supabase } from "../../../lib/supabase";
 import ErrorText from "../../components/ErrorText";
 import FormInput from "../../components/FormInput";
 import PrimaryButton from "../../components/PrimaryButton";
 import { SignUpForm, signUpSchema } from "../../schemas/auth";
 import { authStyles } from "../../styles/authStyles";
+import { getAuthErrorMessage } from "../../utils/authErrors";
 
 type Announcement = {
   id: number;
@@ -31,6 +33,9 @@ export default function SignUp() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [listLoading, setListLoading] = useState(true);
   const [listError, setListError] = useState("");
+
+  //pull signUp out of niko's auth context
+  const { signUp } = useAuth();
 
   const {
     control,
@@ -68,11 +73,12 @@ export default function SignUp() {
     setLoading(true);
 
     try {
-      //placeholder until niko's signUp is ready
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log("sign up with", data);
-    } catch {
-      setAuthError("Something went wrong. Please try again.");
+      const { error } = await signUp(data.email, data.password);
+      //show a readable message if supabase said no
+      if (error) setAuthError(getAuthErrorMessage(error));
+    } catch (err) {
+      //network died or something unexpected, still don't crash
+      setAuthError(getAuthErrorMessage(err));
     } finally {
       setLoading(false);
     }
