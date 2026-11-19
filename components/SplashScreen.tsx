@@ -1,6 +1,6 @@
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
-export default function SplasScreen() {
+export default function SplashScreen() {
   return (
     <View style={styles.container}>
       <ActivityIndicator size="large" />
