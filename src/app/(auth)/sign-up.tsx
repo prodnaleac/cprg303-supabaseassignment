@@ -1,4 +1,4 @@
-//sign up screen with form validation and public announcements
+//sign up screen with form validation and public books list
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link } from "expo-router";
 import { useEffect, useState } from "react";
@@ -19,18 +19,18 @@ import { SignUpForm, signUpSchema } from "../../schemas/auth";
 import { authStyles } from "../../styles/authStyles";
 import { getAuthErrorMessage } from "../../utils/authErrors";
 
-type Announcement = {
+type Book = {
   id: number;
   title: string;
-  message: string;
+  author: string;
 };
 
 export default function SignUp() {
   const [loading, setLoading] = useState(false);
   const [authError, setAuthError] = useState("");
 
-  //public data from the announcements table
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  //public data from the public_books table
+  const [books, setBooks] = useState<Book[]>([]);
   const [listLoading, setListLoading] = useState(true);
   const [listError, setListError] = useState("");
 
@@ -46,25 +46,25 @@ export default function SignUp() {
     defaultValues: { email: "", password: "", confirmPassword: "" },
   });
 
-  //grab the announcements once when the screen opens
+  //grab the public books once when the screen opens
   useEffect(() => {
-    const loadAnnouncements = async () => {
+    const loadBooks = async () => {
       try {
         const { data, error } = await supabase
-          .from("announcements")
+          .from("public_books")
           .select("*")
           .order("id");
 
         if (error) throw error;
-        setAnnouncements(data ?? []);
+        setBooks(data ?? []);
       } catch {
-        setListError("Couldn't load announcements. Check your connection.");
+        setListError("Couldn't load books. Check your connection.");
       } finally {
         setListLoading(false);
       }
     };
 
-    loadAnnouncements();
+    loadBooks();
   }, []);
 
   //only runs if zod says the form is valid
@@ -90,7 +90,9 @@ export default function SignUp() {
       keyboardShouldPersistTaps="handled"
     >
       <Text style={authStyles.title}>Create account</Text>
-      <Text style={authStyles.subtitle}>Sign up to see your courses</Text>
+      <Text style={authStyles.subtitle}>
+        Sign up to see the full collection
+      </Text>
 
       <Controller
         control={control}
@@ -156,17 +158,17 @@ export default function SignUp() {
       </View>
 
       {/*public data, anyone can see this even logged out*/}
-      <Text style={styles.sectionTitle}>Announcements</Text>
+      <Text style={styles.sectionTitle}>Featured Books</Text>
 
       {listLoading ? (
         <ActivityIndicator style={{ marginTop: 12 }} />
       ) : listError ? (
         <ErrorText message={listError} />
       ) : (
-        announcements.map((item) => (
-          <View key={item.id} style={styles.card}>
-            <Text style={styles.cardTitle}>{item.title}</Text>
-            <Text style={styles.cardText}>{item.message}</Text>
+        books.map((book) => (
+          <View key={book.id} style={styles.card}>
+            <Text style={styles.cardTitle}>{book.title}</Text>
+            <Text style={styles.cardText}>{book.author}</Text>
           </View>
         ))
       )}
