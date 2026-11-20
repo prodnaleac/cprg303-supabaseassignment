@@ -43,6 +43,7 @@ export default function HomeScreen() {
     <FlatList
       data={books}
       keyExtractor={(item) => String(item.id)}
+      contentInsetAdjustmentBehavior="automatic"
       contentContainerStyle={{ padding: 16 }}
       ListEmptyComponent={<Text>No books found.</Text>}
       renderItem={({ item }) => (
